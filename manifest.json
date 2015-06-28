@@ -1,0 +1,16 @@
+{
+	"manifest_version" : 2,
+	"name" : "TANet Roamer",
+	"version" : "0.9.0",
+	"description" : "專屬 TANet 無線漫遊的登入器",
+	"author" : "ALiangLiang",
+	"minimum_chrome_version" : "23",
+	"app" : {
+		"background" : {
+			"scripts" : ["background.js"]
+		}
+	},
+	"permissions" : [
+		"storage", "notifications"
+	]
+}
