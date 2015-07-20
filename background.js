@@ -1,51 +1,108 @@
-var user, password, nf = chrome.notifications,
-chromeVersion = Number(window.navigator.userAgent.match(/Chrome\/\d*/)[0].split("/")[1]),
+var user = "user", password = "password", status = false, nf = chrome.notifications,
 settingBtn = {
 	"title" : "設定",
-	"iconUrl" : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4/5/hPwAH/QL+ecrXpAAAAABJRU5ErkJggg=="
-},
-red = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP4z8DwHwAFAAH/VscvDQAAAABJRU5ErkJggg==",
-green = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNg+M/wHwAEAQH/rrVV9QAAAABJRU5ErkJggg==";
-chrome.app.runtime.onLaunched.addListener(launch);
-function launch() {
-	var data = {
-		"user" : user,
-		"password" : password,
-		"cmd" : "authenticate",
-		"Login" : "繼續"
-	};
-	nf.create("main", {
-		"type" : "basic",
-		"iconUrl" : green,
-		"title" : "登入",
-		"message" : "使用 " + data.user + " 帳號進行登入",
-		"buttons" : [settingBtn]
-	}, function () {});
-	var xhr = new XMLHttpRequest();
-	xhr.open("post", "https://securelogin.arubanetworks.com/auth/index.html/u");
-	xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded");
-	xhr.onload = function () {
-		nf.create("loginSuccess", {
-			"type" : "basic",
-			"iconUrl" : green,
-			"title" : "登入成功",
-			"message" : "已成功連上TANet網路。"
-		}, function () {});
-	};
-	xhr.onerror = function () {
-		console.log(xhr);
-		nf.create("loginError", {
-			"type" : "basic",
-			"iconUrl" : red,
-			"title" : "登入失敗",
-			"message" : "您尚未連上TANet Roaming",
-			"buttons" : [settingBtn]
-		}, function () {});
-	};
-	xhr.send(JSON2URL(data));
+	"iconUrl" : YELLOW
+};
+chrome.app.runtime.onLaunched.addListener(logInOut);
+function logInOut() {
+	if (status === true) {
+		console.log("Out");
+		console.log(status);
+		var xhr = new XMLHttpRequest();
+		xhr.open("get", "http://securelogin.arubanetworks.com/cgi-bin/login?cmd=logout");
+		xhr.onload = function () {
+			nf.create("main", {
+				"type" : "basic",
+				"iconUrl" : GREEN,
+				"title" : STRING_LOGOUT,
+				"message" : STRING_LOGOUT_SUCCESS,
+				"buttons" : [settingBtn]
+			}, function () {
+				status = true;
+			});
+		}
+		xhr.send();
+	} else {
+		console.log(status);
+		chrome.storage.sync.get(["user", "password"], function (data) {
+			var post = {
+				"user" : data.user,
+				"password" : data.password,
+				"cmd" : "authenticate",
+				"Login" : "繼續"
+			};
+			nf.create("main", {
+				"type" : "basic",
+				"iconUrl" : GREEN,
+				"title" : STRING_LOGIN,
+				"message" : "使用 " + data.user + " 帳號進行登入",
+				"buttons" : [settingBtn]
+			});
+			var xhr = new XMLHttpRequest();
+			xhr.open("post", "http://securelogin.arubanetworks.com/auth/index.html/u");
+			xhr.setRequestHeader("content-type", "application/x-www-form-urlencoded");
+			xhr.onload = function () {
+				var hash = decodeURI(new URL(xhr.responseURL).search).replace(/^\?/, "").split("="),
+				nfOption, result = "";
+				switch (hash.errmsg = hash[1]) {
+				case LOGIN_SUCCESS:
+					result = "loginSuccess";
+					nfOption = {
+						"type" : "basic",
+						"iconUrl" : GREEN,
+						"title" : STRING_LOGIN_SUCCESS,
+						"message" : STRING_MSG_LOGIN_SUCCESS
+					};
+					status = false;
+					break;
+				case LOGIN_WRONG_PASSWORD:
+					result = "loginError";
+					nfOption = {
+						"type" : "basic",
+						"iconUrl" : RED,
+						"title" : STRING_LOGIN_FAILED,
+						"message" : STRING_MSG_WRONG_PASSWORD,
+						"buttons" : [settingBtn]
+					};
+					break;
+				case LOGIN_NO_INFORMATION:
+					result = "loginError";
+					nfOption = {
+						"type" : "basic",
+						"iconUrl" : RED,
+						"title" : STRING_LOGIN_FAILED,
+						"message" : "",
+						"buttons" : [settingBtn]
+					};
+					break;
+				case ONLY_ONE_USER:
+					result = "loginError";
+					nfOption = {
+						"type" : "basic",
+						"iconUrl" : RED,
+						"title" : STRING_LOGIN_FAILED,
+						"message" : STRING_MSG_ONLY_ONE_USER,
+						"buttons" : [settingBtn]
+					};
+					break;
+				}
+				nf.create(result, nfOption, function () {});
+			};
+			xhr.onerror = function () {
+				nf.create("loginError", {
+					"type" : "basic",
+					"iconUrl" : RED,
+					"title" : STRING_LOGIN_FAILED,
+					"message" : STRING_MSG_WRONG_SSID,
+					"buttons" : [settingBtn]
+				});
+			};
+			xhr.send(JSON.toURL(post));
+		});
+	}
 }
 
-function JSON2URL(JSON) {
+JSON.toURL = function (JSON) {
 	var URL = "",
 	first = true;
 	for (var i in JSON) {
@@ -57,15 +114,6 @@ function JSON2URL(JSON) {
 	}
 	return URL;
 }
-
-chrome.storage.onChanged.addListener(function (changes, namespace) {
-	for (var key in changes) {}
-});
-
-chrome.storage.sync.get(["user", "password"], function (data) {
-	user = data.user;
-	password = data.password;
-});
 
 nf.onButtonClicked.addListener(function (nfID, btnID) {
 	if (nfID == "main" || nfID == "loginError" && btnID === 0) {
