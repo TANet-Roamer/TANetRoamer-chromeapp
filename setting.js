@@ -4,12 +4,12 @@ blue = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADU
 
 form.onsubmit = function (e) {
 	e.preventDefault();
-	console.log(e);
-	var user = e.target[0].name;
-	var password = e.target[1].name;
 	chrome.storage.sync.set({
-		user : e.target[0].value,
-		password : e.target[1].value
+		school_current : e.target[0].value,
+		school_for : e.target[1].value,
+		user : e.target[2].value,
+		password : e.target[3].value,
+		autologin : e.target[4].checked
 	}, function (result) {
     console.log(result);
     if(!chrome.runtime.lastError) {
@@ -30,9 +30,38 @@ form.onsubmit = function (e) {
     }
 	});
 };
-chrome.storage.sync.get(["user", "password"], function (data) {
-	var targets = form.querySelectorAll("[name]");
-	targets[0].value = data.user;
-	targets[1].value = data.password;
+
+var errorHandler = function(e) {console.error(e)};
+
+chrome.runtime.getPackageDirectoryEntry(function(root) {
+  root.getFile("schools.json", {}, function(fileEntry) {
+    fileEntry.file(function(file) {
+      var reader = new FileReader();
+      reader.onloadend = function(e) {
+        var schools = JSON.parse(this.result);
+        var target_current = form.querySelector("[name=school_current]");
+        var target_for = form.querySelector("[name=school_for]");
+        for(var i in schools) {
+          var ele = document.createElement("option");
+          ele.value = schools[i].id;
+          ele.innerText = schools[i].name;
+          target_current.add(ele.cloneNode(true));
+          target_for.add(ele.cloneNode(true));
+        }
+        syncInfo();
+      };
+      reader.readAsText(file);
+    }, errorHandler);
+  }, errorHandler);
 });
 
+function syncInfo() {
+  chrome.storage.sync.get(["school_current", "school_for", "user", "password", "autologin"], function (data) {
+    var targets = form.querySelectorAll("[name]");
+    targets[0].querySelector('[value="' + data.school_current + '"]').selected = true;
+    targets[1].querySelector('[value="' + data.school_for + '"]').selected = true;
+    targets[2].value = data.user;
+    targets[3].value = data.password;
+    targets[4].checked = data.password;
+  });
+}

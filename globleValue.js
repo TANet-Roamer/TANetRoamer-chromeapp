@@ -2,6 +2,7 @@ const LOGIN_SUCCESS = undefined,
 LOGIN_WRONG_PASSWORD = "Authentication failed",
 LOGIN_NO_INFORMATION = "Access denied",
 ONLY_ONE_USER = "Only one user login session is allowed",
+NO_AUTH_SERVER_PROVISIONED = "No auth server provisioned",
 
 STRING_LOGOUT = "登出",
 STRING_LOGOUT_SUCCESS = "登出成功",

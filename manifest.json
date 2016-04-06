@@ -1,7 +1,7 @@
 {
 	"manifest_version" : 2,
 	"name" : "TANet Roamer",
-	"version" : "0.9.2",
+	"version" : "0.10.0",
 	"description" : "專屬 TANet 無線漫遊的登入器",
 	"author" : "ALiangLiang",
 	"minimum_chrome_version" : "23",
@@ -16,6 +16,6 @@
 		}
 	},
 	"permissions" : [
-		"background", "storage", "notifications", "http://securelogin.arubanetworks.com/", "<all_urls>"
+		"fileSystem", "background", "idle", "storage", "notifications", "http://securelogin.arubanetworks.com/", "<all_urls>"
 	]
 }
