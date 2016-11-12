@@ -12,7 +12,7 @@
 	},
 	"app" : {
 		"background" : {
-			"scripts" : ["js/jquery-2.1.1.min.js", "globleValue.js", "background.js"]
+			"scripts" : ["js/jquery-2.1.1.min.js", "globleValue.js", "account.js", "background.js"]
 		}
 	},
 	"permissions" : [
