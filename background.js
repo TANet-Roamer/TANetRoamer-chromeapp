@@ -1,19 +1,19 @@
-var user = 'user',
-  password = 'password',
-  status = false,
+const
   nf = chrome.notifications,
-  schools,
+  errorHandler = (e) => {
+    console.error(e)
+  },
   settingBtn = {
     title: '設定',
     iconUrl: YELLOW
   };
-var errorHandler = function(e) {
-  console.error(e)
-};
-chrome.app.runtime.onLaunched.addListener(login);
+let user = 'user',
+  password = 'password',
+  status = false,
+  schools;
 
-chrome.runtime.getPackageDirectoryEntry(function(root) {
-  root.getFile('schools.json', {}, function(fileEntry) {
+chrome.runtime.getPackageDirectoryEntry((root) => {
+  root.getFile('schools.json', {}, (fileEntry) => {
     fileEntry.file(function(file) {
       var reader = new FileReader();
       reader.onloadend = function(e) {
@@ -24,10 +24,12 @@ chrome.runtime.getPackageDirectoryEntry(function(root) {
   }, errorHandler);
 });
 
+chrome.app.runtime.onLaunched.addListener(login);
+
 function login() {
-  chrome.storage.sync.get(['school_place', 'user', 'password'], function(data) {
+  chrome.storage.sync.get(['school_place', 'user', 'password'], (data) => {
     if (!data.user || !data.password || !data.school_place) {
-      openSettingPage(null, 0);
+      openSettingPage();
       return;
     }
     const user = data.user,
@@ -66,51 +68,54 @@ function login() {
       title: STRING_LOGIN_FAILED,
       message: ''
     };
-    var xhr = new XMLHttpRequest();
-    xhr.open('post', url);
-    xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded');
-    xhr.onload = function() {
-      var hash = decodeURI(new URL(xhr.responseURL).search).replace(/^\?/, '').split('=');
-      switch (hash.errmsg = hash[1]) {
-        case LOGIN_SUCCESS:
-          nfOption = Object.assign(nfOption, {
-            iconUrl: GREEN,
-            title: STRING_LOGIN_SUCCESS,
-            message: STRING_MSG_LOGIN_SUCCESS
-          });
-          break;
-        case LOGIN_WRONG_PASSWORD:
-          nfOption = Object.assign(nfOption, {
-            message: STRING_MSG_WRONG_PASSWORD,
-            buttons: [settingBtn]
-          });
-          break;
-        case LOGIN_NO_INFORMATION:
-          nfOption = Object.assign(nfOption, {
-            buttons: [settingBtn]
-          });
-          break;
-        case ONLY_ONE_USER:
-          nfOption = Object.assign(nfOption, {
-            message: STRING_MSG_ONLY_ONE_USER,
-            buttons: [settingBtn]
-          });
-          break;
-      }
-      nf.create(nfOption, function() {});
-    };
-    xhr.onerror = function() {
-      nf.create('loginError', Object.assign(nfOption, {
-        message: STRING_MSG_WRONG_SSID,
-        buttons: [settingBtn]
-      }));
-    };
-    xhr.send(JSON.toURL(post));
+    /* 使用 API 登入。 */
+    const searchParams = new URLSearchParams();
+    for (let i in post)
+      searchParams.append(i, post[i]);
+    fetch(url, {
+        method: 'POST',
+        body: searchParams,
+      })
+      .then((res) => {
+        const hash = decodeURI(new URL(res.url).search).replace(/^\?/, '').split('=');
+        switch (hash.errmsg = hash[1]) {
+          case LOGIN_SUCCESS:
+            nfOption = Object.assign(nfOption, {
+              iconUrl: GREEN,
+              title: STRING_LOGIN_SUCCESS,
+              message: STRING_MSG_LOGIN_SUCCESS
+            });
+            break;
+          case LOGIN_WRONG_PASSWORD:
+            nfOption = Object.assign(nfOption, {
+              message: STRING_MSG_WRONG_PASSWORD,
+              buttons: [settingBtn]
+            });
+            break;
+          case LOGIN_NO_INFORMATION:
+            nfOption = Object.assign(nfOption, {
+              buttons: [settingBtn]
+            });
+            break;
+          case ONLY_ONE_USER:
+            nfOption = Object.assign(nfOption, {
+              message: STRING_MSG_ONLY_ONE_USER,
+              buttons: [settingBtn]
+            });
+            break;
+        }
+        nf.create(nfOption, function() {});
+      }, (res) => {
+        nf.create('loginError', Object.assign(nfOption, {
+          message: STRING_MSG_WRONG_SSID,
+          buttons: [settingBtn]
+        }));
+      });
   });
 };
 
 function isConnect() {
-  return new Promise(function(res, rej) {
+  return new Promise((res, rej) => {
     try {
       var xhr = new XMLHttpRequest();
       xhr.open('post', 'https://www.google.com');
@@ -126,44 +131,32 @@ function isConnect() {
   });
 }
 
-JSON.toURL = function(JSON) {
-  var URL = '',
-    first = true;
-  for (var i in JSON) {
-    if (first)
-      URL += i + '=' + JSON[i];
-    else
-      URL += '&' + i + '=' + JSON[i];
-    first = false;
-  }
-  return URL;
-}
-
-function openSettingPage(nfID, btnID) {
-  if (btnID === 0) {
-    var CreateWindowOptions = ((chromeVersion >= 35) ? {
-      'resizable': false,
-      'innerBounds': {
-        'width': 150,
-        'minWidth': 200,
-        'maxWidth': 400,
-        'height': 200,
-        'minHeight': 350,
-        'maxHeight': 400
-      }
-    } : {
-      'resizable': false,
-      'bounds': {
-        'width': 200,
-        'height': 350
-      },
+function openSettingPage() {
+  var CreateWindowOptions = ((chromeVersion >= 35) ? {
+    'resizable': false,
+    'innerBounds': {
+      'width': 150,
       'minWidth': 200,
       'maxWidth': 400,
+      'height': 200,
       'minHeight': 350,
       'maxHeight': 400
-    });
-    chrome.app.window.create('setting.html', CreateWindowOptions);
-  }
+    }
+  } : {
+    'resizable': false,
+    'bounds': {
+      'width': 200,
+      'height': 350
+    },
+    'minWidth': 200,
+    'maxWidth': 400,
+    'minHeight': 350,
+    'maxHeight': 400
+  });
+  chrome.app.window.create('setting.html', CreateWindowOptions);
 }
 
-nf.onButtonClicked.addListener(openSettingPage);
+nf.onButtonClicked.addListener((nfID, btnID) => {
+  if (btnID === 0)
+    openSettingPage
+});
