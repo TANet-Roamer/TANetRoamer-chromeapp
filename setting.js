@@ -1,37 +1,40 @@
-var form = document.forms[0],
-nf = chrome.notifications,
-blue = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNgYPj/HwADAgH/OSkZvgAAAABJRU5ErkJggg==";
+const form = document.forms[0],
+  nf = chrome.notifications,
+  BLUE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNgYPj/HwADAgH/OSkZvgAAAABJRU5ErkJggg==';
 
-form.onsubmit = function (e) {
-	e.preventDefault();
-	chrome.storage.sync.set({
-		school_current : e.target[0].value,
-		school_for : e.target[1].value,
-		user : e.target[2].value,
-		password : e.target[3].value,
-		autologin : e.target[4].checked
-	}, function (result) {
+form.onsubmit = function(e) {
+  e.preventDefault();
+  console.log(e);
+  chrome.storage.sync.set({
+    school_place: e.target.querySelector('#school_place').value,
+    school_studing: e.target.querySelector('#school_studing').value,
+    user: e.target.querySelector('#account').value,
+    password: e.target.querySelector('#pwd').value,
+    autologin: e.target.querySelector('#autologin').checked
+  }, function(result) {
     console.log(result);
-    if(!chrome.runtime.lastError) {
-      nf.create("settingFinish", {
-        "type" : "basic",
-        "iconUrl" : blue,
-        "title" : "設定成功",
-        "message" : "設定成功"
+    if (!chrome.runtime.lastError) {
+      nf.create('settingFinish', {
+        type: 'basic',
+        iconUrl: BLUE,
+        title: '設定成功',
+        message: '設定成功'
       });
       window.close();
     } else {
-      nf.create("settingFinish", {
-        "type" : "basic",
-        "iconUrl" : blue,
-        "title" : "設定失敗",
-        "message" : "設定失敗: " + chrome.runtime.lastError
+      nf.create('settingFinish', {
+        type: 'basic',
+        iconUrl: BLUE,
+        title: '設定失敗',
+        message: '設定失敗: ' + chrome.runtime.lastError
       });
     }
-	});
+  });
 };
 
-var errorHandler = function(e) {console.error(e)};
+var errorHandler = function(e) {
+  console.error(e)
+};
 
 chrome.runtime.getPackageDirectoryEntry(function(root) {
   root.getFile("schools.json", {}, function(fileEntry) {
@@ -39,14 +42,14 @@ chrome.runtime.getPackageDirectoryEntry(function(root) {
       var reader = new FileReader();
       reader.onloadend = function(e) {
         var schools = JSON.parse(this.result);
-        var target_current = form.querySelector("[name=school_current]");
-        var target_for = form.querySelector("[name=school_for]");
-        for(var i in schools) {
-          var ele = document.createElement("option");
+        var school_place = form.querySelector('[name=school_place]');
+        var school_studing = form.querySelector('[name=school_studing]');
+        for (var i in schools) {
+          var ele = document.createElement('option');
           ele.value = schools[i].id;
           ele.innerText = schools[i].name;
-          target_current.add(ele.cloneNode(true));
-          target_for.add(ele.cloneNode(true));
+          school_place.add(ele.cloneNode(true));
+          school_studing.add(ele.cloneNode(true));
         }
         syncInfo();
       };
@@ -56,10 +59,10 @@ chrome.runtime.getPackageDirectoryEntry(function(root) {
 });
 
 function syncInfo() {
-  chrome.storage.sync.get(["school_current", "school_for", "user", "password", "autologin"], function (data) {
-    var targets = form.querySelectorAll("[name]");
-    targets[0].querySelector('[value="' + data.school_current + '"]').selected = true;
-    targets[1].querySelector('[value="' + data.school_for + '"]').selected = true;
+  chrome.storage.sync.get(['school_place', 'school_studing', 'user', 'password', 'autologin'], function(data) {
+    var targets = form.querySelectorAll('[name]');
+    targets[0].querySelector('[value="' + data.school_place + '"]').selected = true;
+    targets[1].querySelector('[value="' + data.school_studing + '"]').selected = true;
     targets[2].value = data.user;
     targets[3].value = data.password;
     targets[4].checked = data.password;

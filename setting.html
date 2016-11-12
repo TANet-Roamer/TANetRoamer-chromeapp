@@ -1,39 +1,43 @@
-<html><head>
-<meta http-equiv="Content-Type" content="text/html" charset="utf-8">
-<link type="text/css" rel="stylesheet" href="css/materialize.min.css">
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+    <link type="text/css" rel="stylesheet" href="css/materialize.min.css">
 </head>
+
 <body>
-  <div class="container">
-  <form id="form">
-    <div class="input-field col s6">
-      <label for="school_current">校名</label>
-      <select class=" browser-default" id="school_current" name="school_current">
+    <div class="container">
+        <form id="form">
+            <div class="input-field col s6">
+                <label for="school_place">校名</label>
+                <select class=" browser-default" id="school_place" name="school_place">
         <option value="" disabled selected>選擇所在的校園</option>
       </select>
-    </div>
-    <div class="input-field col s6">
-      <label for="school_for">校名</label>
-      <select class=" browser-default" id="school_for" name="school_for">
+            </div>
+            <div class="input-field col s6">
+                <label for="school_studing">校名</label>
+                <select class=" browser-default" id="school_studing" name="school_studing">
         <option value="" disabled selected>選擇所屬學校</option>
       </select>
+            </div>
+            <div class="input-field col s6">
+                <input name="user" placeholder="Placeholder" id="account" type="text" class="validate">
+                <label for="account">帳號</label>
+            </div>
+            <div class="input-field col s6">
+                <input name="password" placeholder="Placeholder" id="pwd" type="password" class="validate">
+                <label for="pwd">密碼</label>
+            </div>
+            <p>
+                <input name="autologin" type="checkbox" id="autologin" />
+                <label for="autologin">下次自動登入</label>
+            </p>
+            <button class="btn waves-effect waves-light" type="submit">儲存</button>
+        </form>
     </div>
-    <div class="input-field col s6">
-      <input name="user" placeholder="Placeholder" id="account" type="text" class="validate">
-      <label for="account">帳號</label>
-    </div>
-    <div class="input-field col s6">
-      <input name="password" placeholder="Placeholder" id="pwd" type="password" class="validate">
-      <label for="pwd">密碼</label>
-    </div>
-		<p>
-      <input name="autologin" type="checkbox" id="autologin" />
-      <label for="autologin">下次自動登入</label>
-    </p>
-    <button class="btn waves-effect waves-light" type="submit">儲存</button>
-  </form>
-  </div>
-  <script src="setting.js"></script>
-  <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
-  <script type="text/javascript" src="js/materialize.min.js"></script>
+    <script src="setting.js"></script>
+    <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="js/materialize.min.js"></script>
 </body>
+
 </html>
